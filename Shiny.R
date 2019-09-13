@@ -98,24 +98,28 @@ x <- list(
   titlefont = f
 )
 
-AllCountsAmbient3 <- AllCountsAmbient[, c("TEMP", "DO", "Site", "Specific.Cond", "Turbidity", "Fecal.Coliform", "Year", "Precipitation", "BIBI")]
+AllCountsAmbient3 <- AllCountsAmbient[, c("Date", "TEMP", "DO", "Site", "Specific.Cond", "Turbidity", "Fecal.Coliform", "Year", "Precipitation", "BIBI", "TSS", "Cu", "Zn", "Pb", "TN", "TP")]
 nms3 <- names(AllCountsAmbient3)
 
 ui <- fluidPage(
   
   headerPanel("Bothell Water Quality"),
   sidebarPanel(
-    sliderInput('sampleSize', 'Sample Size', min = 1, max = nrow(AllCountsAmbient3),
-                value = 1000, step = 50, round = 0),
-    selectInput('x', 'X', choices = nms3, selected = "Site"),
-    selectInput('y', 'Y', choices = nms3, selected = "TEMP"),
+    #sliderInput('sampleSize', 'Sample Size', min = 1, max = nrow(AllCountsAmbient3),
+                #value = 1000, step = 50, round = 0),
+    selectInput('x', 'X', choices = "Site", selected = "Site"),
+    selectInput('y', 'Y', choices = c("TEMP", "DO", "Specific.Cond", "Turbidity", "TSS", "Fecal.Coliform", "BIBI", "Cu", "Zn", "Pb", "TN", "TP"), selected = "TEMP"),
     selectInput('color', 'Color', choices = c("Site", "Year", "Precipitation"), selected = "Site"),
+    
+    dateRangeInput("Date", "Date Range:",
+                   start = min(AllCountsAmbient3$Date),
+                   end = max(AllCountsAmbient3$Date)),
     
     # selectInput('facet_row', 'Facet Row', c(None = '.', nms2), selected = "Site"), to choose all categories as facet type
     selectInput('facet_row', 'Facet Row', c(None = '.', "Site")),
-    selectInput('facet_col', 'Facet Column', c(None = '.', "Year", "Precipitation")),
+    selectInput('facet_col', 'Facet Column', c(None = '.', "Precipitation")),
     sliderInput('plotHeight', 'Height of plot (in pixels)', 
-                min = 100, max = 2000, value = 1000)
+                min = 100, max = 1000, value = 700)
   ),
   
   
@@ -127,15 +131,20 @@ ui <- fluidPage(
 server <- function(input, output) {
   
   #add reactive data information. Dataset = built in diamonds data
+  #dataset <- reactive({
+   # AllCountsAmbient3[sample(nrow(AllCountsAmbient3), input$sampleSize),]
+  #})
+  
   dataset <- reactive({
-    AllCountsAmbient3[sample(nrow(AllCountsAmbient3), input$sampleSize),]
+    filter(AllCountsAmbient3, between(Date, input$Date[1], input$Date[2]))
   })
   
   output$trendPlot <- renderPlotly({
     
     # build graph with ggplot syntax
     p <- ggplot(dataset(), aes_string(x = input$x, y = input$y, color = input$color)) + 
-      geom_boxplot()
+      geom_boxplot() +theme_bw() + theme(axis.title.y = element_text(size=18), title = element_text(size = 18), axis.text.x = element_text(size = 12, angle = 65, vjust = 0.6),
+                                         axis.text.y = element_text(size = 15), legend.title = element_text(size=15), legend.text = element_text(size=15), legend.position = "none")
     
     # if at least one facet column/row is specified, add it
     facets <- paste(input$facet_row, '~', input$facet_col)
