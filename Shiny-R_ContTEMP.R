@@ -72,18 +72,25 @@ x <- list(
 
 
 ui <- fluidPage(
-  
+
   headerPanel("Bothell Continuous Temperature Loggers"),
   sidebarPanel(
-    sliderInput('sampleSize', 'Sample Size', min = 1, max = nrow(AllCounts),
-                value = 10000, step = 50, round = 0),
+    #sliderInput('sampleSize', 'Sample Size', min = 1, max = nrow(AllCounts),
+                #value = 10000, step = 50, round = 0),
     selectInput('x', 'X', choices = "Date", selected = "Date"),
     selectInput('y', 'Y', choices = "Seven_DADMax", selected = "Seven_DadMax"),
     selectInput('color', 'Color', choices = "Temp.Type", selected = "Temp.Type"),
     
+    #selectInput("Site", "Choose Site:",
+                       #choices = c("HC", "NC", "PA", "WC"),
+                       #textOutput("txt")),
+    dateRangeInput("Date", "Date Range:",
+                   start = "2011-06-06",
+                   end = max(AllCounts$Date)),
+    
     # selectInput('facet_row', 'Facet Row', c(None = '.', nms2), selected = "Site"), to choose all categories as facet type
-    selectInput('facet_row', 'Facet Row', choices = "Site",, selected = "Site"),
-    selectInput('facet_col', 'Facet Column', c(None = '.', "Site")),
+    selectInput('facet_row', 'Facet Row', choices = "Stream",, selected = "Stream"),
+    selectInput('facet_col', 'Facet Column', c(None = '.', "Stream")),
     sliderInput('plotHeight', 'Height of plot (in pixels)', 
                 min = 100, max = 1000, value = 700)
   ),
@@ -98,16 +105,18 @@ server <- function(input, output) {
   
   #add reactive data information. Dataset = built in diamonds data
   dataset <- reactive({
-    AllCounts[sample(nrow(AllCounts), input$sampleSize),]
+    filter(AllCounts, between(Date, input$Date[1], input$Date[2]))
   })
   
+  
   output$trendPlot <- renderPlotly({
-    
-    # build graph with ggplot syntax
-    p <- ggplot(dataset(), aes_string(x = input$x, y = input$y, color = input$color)) + 
+    #subset using data selected by user
+
+    # build graph with ggplot syntax (dataset())
+    p <- ggplot(dataset(), aes_string(x = input$x, y = input$y, color = input$color)) + labs(y = "7 Day Avg Max Daily Temp", x = "Date") +
       geom_point() + geom_hline(yintercept = 16, color = "red") + theme_bw() + theme(axis.title.y = element_text(size=18), title = element_text(size = 18), axis.text.x = element_text(size = 12, angle = 65, vjust = 0.6),
                                          axis.text.y = element_text(size = 15), legend.title = element_text(size=15), legend.text = element_text(size=15), legend.position = "none")
-    
+    p
     # if at least one facet column/row is specified, add it
     facets <- paste(input$facet_row, '~', input$facet_col)
     if (facets != '. ~ .') p <- p + facet_grid(facets)
@@ -116,6 +125,8 @@ server <- function(input, output) {
       layout(height = input$plotHeight, autosize=TRUE)
     
   })
+  
+  
   
 }
 
