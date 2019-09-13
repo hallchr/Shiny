@@ -72,8 +72,8 @@ AllCountsAmbient$Month <- month(AllCountsAmbient$Date, label = TRUE, abbr = TRUE
 AllCountsAmbient$pH <- as.numeric(AllCountsAmbient$pH)
 AllCountsAmbient$Turbidity <- as.numeric(AllCountsAmbient$Turbidity)
 
-AllCountsAmbient$Temp.Type <- ifelse(AllCountsAmbient$TEMP < 16, "below", "above")
-AllCountsAmbient$DO.Type <- ifelse(AllCountsAmbient$DO > 9.5, "below", "above")
+AllCountsAmbient$Temp.Type <- ifelse(AllCountsAmbient$Temperature < 16, "below", "above")
+AllCountsAmbient$DO.Type <- ifelse(AllCountsAmbient$Dissolved.Oxygen > 9.5, "below", "above")
 AllCountsAmbient$Turbidity.Type <- ifelse(AllCountsAmbient$Turbidity < 4, "below", "above")
 
 AllCountsAmbient2019 <- subset(AllCountsAmbient, Year %in% "2019")
@@ -98,7 +98,7 @@ x <- list(
   titlefont = f
 )
 
-AllCountsAmbient3 <- AllCountsAmbient[, c("Date", "TEMP", "DO", "Site", "Specific.Cond", "Turbidity", "Fecal.Coliform", "Year", "Precipitation", "BIBI", "TSS", "Cu", "Zn", "Pb", "TN", "TP")]
+AllCountsAmbient3 <- AllCountsAmbient[, c("Date", "Temperature", "Dissolved.Oxygen", "Stream", "Specific.Conductivity", "Turbidity", "Fecal.Coliform", "Year", "Precipitation", "BIBI", "Total.Suspended.Solids", "Copper.Dissolved", "Zinc.Dissolved", "Lead.Dissolved", "Total.Nitrogen", "Total.Phosphorus")]
 nms3 <- names(AllCountsAmbient3)
 
 ui <- fluidPage(
@@ -107,16 +107,16 @@ ui <- fluidPage(
   sidebarPanel(
     #sliderInput('sampleSize', 'Sample Size', min = 1, max = nrow(AllCountsAmbient3),
                 #value = 1000, step = 50, round = 0),
-    selectInput('x', 'X', choices = "Site", selected = "Site"),
-    selectInput('y', 'Y', choices = c("TEMP", "DO", "Specific.Cond", "Turbidity", "TSS", "Fecal.Coliform", "BIBI", "Cu", "Zn", "Pb", "TN", "TP"), selected = "TEMP"),
-    selectInput('color', 'Color', choices = c("Site", "Year", "Precipitation"), selected = "Site"),
+    selectInput('x', 'X', choices = "Stream", selected = "Stream"),
+    selectInput('y', 'Y', choices = c("Temperature", "Dissolved.Oxygen", "Specific.Conductivity", "Turbidity", "Total.Suspended.Solids", "Fecal.Coliform", "BIBI", "Copper.Dissolved", "Zinc.Dissolved", "Lead.Dissolved", "Total.Nitrogen", "Total.Phosphorus"), selected = "Temperature"),
+    selectInput('color', 'Color', choices = c("Stream", "Year", "Precipitation"), selected = "Stream"),
     
     dateRangeInput("Date", "Date Range:",
                    start = min(AllCountsAmbient3$Date),
                    end = max(AllCountsAmbient3$Date)),
     
-    # selectInput('facet_row', 'Facet Row', c(None = '.', nms2), selected = "Site"), to choose all categories as facet type
-    selectInput('facet_row', 'Facet Row', c(None = '.', "Site")),
+    # selectInput('facet_row', 'Facet Row', c(None = '.', nms2), selected = "Stream"), to choose all categories as facet type
+    selectInput('facet_row', 'Facet Row', c(None = '.', "Stream")),
     selectInput('facet_col', 'Facet Column', c(None = '.', "Precipitation")),
     sliderInput('plotHeight', 'Height of plot (in pixels)', 
                 min = 100, max = 1000, value = 700)
